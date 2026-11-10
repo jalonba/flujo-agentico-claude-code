@@ -2,19 +2,11 @@
 
 import { useState } from "react";
 import { CONFIG_AGENDA } from "@/config/agenda";
-import { calcularAgendaDelDia, esFechaValida, fechaISO, instante, type BloqueAgenda } from "@/dominio/agenda";
+import { calcularAgendaDelDia, esFechaValida, fechaISO, type BloqueAgenda } from "@/dominio/agenda";
 import { notificarCambioDeCitas, useCitasGuardadas } from "@/lib/citas-guardadas";
+import { CLASES_FOCO as FOCO, formatearFechaLarga } from "@/lib/formato";
 import { relojDelSistema } from "@/lib/reloj";
-
-const FOCO =
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco";
-
-const formatoFecha = new Intl.DateTimeFormat("es-CO", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
+import { FormularioReserva } from "./FormularioReserva";
 
 export function Agenda({ reloj = relojDelSistema }: { reloj?: () => Date }) {
   const lectura = useCitasGuardadas();
@@ -47,7 +39,7 @@ export function Agenda({ reloj = relojDelSistema }: { reloj?: () => Date }) {
   const hoy = fechaISO(ahora);
   const fecha = esFechaValida(fechaElegida) ? fechaElegida : hoy;
   const bloques = calcularAgendaDelDia({ ...CONFIG_AGENDA, citas: lectura.citas, fecha, ahora });
-  const titulo = `Horarios del ${formatoFecha.format(instante(fecha))}`;
+  const titulo = `Horarios del ${formatearFechaLarga(fecha)}`;
 
   return (
     <section aria-labelledby="titulo-agenda" className="space-y-4">
@@ -79,6 +71,15 @@ export function Agenda({ reloj = relojDelSistema }: { reloj?: () => Date }) {
             <FilaBloque key={b.inicio} bloque={b} />
           ))}
         </ul>
+      )}
+
+      {bloques.length > 0 && (
+        <FormularioReserva
+          key={fecha}
+          fecha={fecha}
+          libres={bloques.filter((b) => b.estado === "libre")}
+          reloj={reloj}
+        />
       )}
     </section>
   );

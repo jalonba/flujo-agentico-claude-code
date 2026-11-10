@@ -25,12 +25,9 @@ export function interpretarCitas(crudo: string | null): Cita[] {
 }
 
 export function leerCitas(almacenamiento: Pick<Storage, "getItem">): Cita[] {
-  void almacenamiento;
-  throw new Error("No implementado");
+  return interpretarCitas(almacenamiento.getItem(CLAVE_CITAS));
 }
 
 export function guardarCitas(almacenamiento: Pick<Storage, "setItem">, citas: Cita[]): void {
-  void almacenamiento;
-  void citas;
-  throw new Error("No implementado");
+  almacenamiento.setItem(CLAVE_CITAS, JSON.stringify(citas));
 }
