@@ -88,6 +88,21 @@ describe("reservarCita (HU-03)", () => {
     });
   });
 
+  it("HU-03.c4 · el tope de 80 se mide en caracteres visibles, no en unidades UTF-16 (VER-03, W3)", () => {
+    expect(pedir({ nombre: "🙂".repeat(80) }).ok).toBe(true);
+    expect(pedir({ nombre: "e\u0301".repeat(80) }).ok).toBe(true); // «é» con acento combinado
+    expect(pedir({ nombre: "🙂".repeat(81) })).toEqual({ ok: false, error: "NOMBRE_INVALIDO" });
+  });
+
+  it.each([
+    ["espacio de ancho cero", "\u200B"],
+    ["carácter de control", "Ana\u0007"],
+    ["nulo", "\u0000"],
+    ["inversión de texto", "\u202Eana"],
+  ])("HU-03.c4 · rechaza nombres con caracteres invisibles o de control (%s) (VER-03, I4)", (_caso, nombre) => {
+    expect(pedir({ nombre })).toEqual({ ok: false, error: "NOMBRE_INVALIDO" });
+  });
+
   it.each([
     ["fuera de la grilla", { inicio: "08:10" }],
     ["último bloque que no cabe", { inicio: "16:45" }],

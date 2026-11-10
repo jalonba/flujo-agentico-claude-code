@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { relojDePrueba } from "@/__tests__/reloj-de-prueba";
 import { CLAVE_CITAS } from "@/lib/repositorio-citas";
 import { Agenda } from "./Agenda";
@@ -27,6 +27,10 @@ async function reservar(nombre: string, horario: string) {
 
 beforeEach(() => {
   window.localStorage.clear();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("Formulario de reserva (HU-03)", () => {
@@ -67,6 +71,22 @@ describe("Formulario de reserva (HU-03)", () => {
 
     expect(screen.getByRole("alert").textContent).toBe("Ese horario ya pasó. Elige uno más tarde.");
     expect(guardadas()).toBeNull();
+    // VER-03, W2: la lista se refresca y el bloque vencido ya no se ofrece.
+    expect(() => fila("08:00 – 08:30")).toThrow();
+    expect(screen.getByLabelText("Horario").textContent).not.toContain("08:00 – 08:30");
+  });
+
+  it("HU-03.c3 · con la página abierta, los bloques que van empezando desaparecen solos (VER-03, W2)", () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    let ahora = temprano.ahora;
+    render(<Agenda reloj={() => ahora} />);
+    expect(fila("08:00 – 08:30").textContent).toContain("Libre");
+
+    ahora = relojDePrueba({ hora: 8, minuto: 5 }).ahora;
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(() => fila("08:00 – 08:30")).toThrow();
   });
 
   it("HU-03.c4 · nombre en blanco: error asociado al campo y no guarda", async () => {
@@ -99,5 +119,14 @@ describe("Formulario de reserva (HU-03)", () => {
     render(<Agenda reloj={temprano.reloj} />); // "recarga": montaje nuevo leyendo localStorage
     expect(fila("10:00 – 10:30").textContent).toContain("Ocupado");
     expect(fila("10:30 – 11:00").textContent).toContain("Libre");
+  });
+
+  it("HU-03.c1 · la confirmación desaparece cuando alguien empieza una nueva reserva (VER-03, I6)", async () => {
+    render(<Agenda reloj={temprano.reloj} />);
+    await reservar("Ana", "09:00 – 09:30");
+    expect(screen.getByRole("status").textContent).toContain("Ana");
+
+    await userEvent.setup().type(screen.getByLabelText("Nombre"), "B");
+    expect(screen.queryByRole("status")).toBeNull();
   });
 });

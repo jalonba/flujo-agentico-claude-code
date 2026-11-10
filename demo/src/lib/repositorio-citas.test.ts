@@ -25,6 +25,9 @@ describe("interpretarCitas (HU-02)", () => {
     ["hora mal formada", JSON.stringify([{ ...citaValida, inicio: "8:00" }])],
     ["fecha mal formada", JSON.stringify([{ ...citaValida, fecha: "16/01/2030" }])],
     ["nombre vacío", JSON.stringify([{ ...citaValida, nombre: "" }])],
+    ["fin antes del inicio (VER-03, W1)", JSON.stringify([{ ...citaValida, inicio: "09:30", fin: "09:00" }])],
+    ["duración cero (VER-03, W1)", JSON.stringify([{ ...citaValida, inicio: "09:00", fin: "09:00" }])],
+    ["nombre de más de 80 caracteres", JSON.stringify([{ ...citaValida, nombre: "a".repeat(81) }])],
   ])("HU-02.c5 · datos guardados corruptos (%s): lanza ErrorAlmacenamiento", (_caso, crudo) => {
     expect(() => interpretarCitas(crudo)).toThrow(ErrorAlmacenamiento);
   });
