@@ -20,14 +20,14 @@ reglas temporales**, suficiente para mostrar el método completo sin backend.
 
 ## Criterios de éxito (EARS, nivel feature)
 
-- [ ] **E1** — CUANDO se pide la agenda de una fecha, el sistema DEBE calcular los bloques libres a
+- [x] **E1** — CUANDO se pide la agenda de una fecha, el sistema DEBE calcular los bloques libres a
       partir de apertura, cierre, duración, citas existentes y el reloj inyectado. → HU-01
-- [ ] **E2** — CUANDO la persona abre la página o cambia la fecha, el sistema DEBE mostrar cada
+- [x] **E2** — CUANDO la persona abre la página o cambia la fecha, el sistema DEBE mostrar cada
       bloque futuro con su estado en texto (Libre / Ocupado), además de los estados de carga, vacío
       y error. → HU-02
-- [ ] **E3** — SI la persona intenta reservar un bloque ocupado o que ya empezó, ENTONCES el sistema
+- [x] **E3** — SI la persona intenta reservar un bloque ocupado o que ya empezó, ENTONCES el sistema
       DEBE rechazarlo con un mensaje claro y no guardar nada. → HU-03
-- [ ] **E4** — El sistema DEBE siempre conservar las citas reservadas al recargar la página
+- [x] **E4** — El sistema DEBE siempre conservar las citas reservadas al recargar la página
       (`localStorage`). → HU-03
 
 ## Comportamiento esperado (happy path)
@@ -123,7 +123,12 @@ zonas horarias distintas a la del navegador, notificaciones.
 
 ## Aprendizajes
 
-_(se completan durante la implementación)_
+- **HU-01:** afirmar la causa de un error, no solo su tipo (VER-01, H1).
+- **HU-02:** la verificación visual se hace sobre un build limpio; jsdom no aplica CSS (VER-02, H1).
+- **HU-03:** los datos de `localStorage` son entrada externa; se validan igual que la entrada del
+  usuario, incluido `fin > inicio` (VER-03, W1). «Caracteres» son grafemas (VER-03, W3).
+- **Desviación del PRP:** `reservarCita` es la única fuente de la regla de no solapamiento; la UI
+  vuelve a leer `localStorage` antes de reservar. Sin backend, dos pestañas pueden pisarse (VER-03, I8).
 
 ## Gotchas
 

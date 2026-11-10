@@ -90,3 +90,11 @@ Regla de dependencias: `components → lib → dominio`. El dominio no importa n
   (no aplican CSS).
 - **Fix:** `rm -rf .next && npm run build` antes de cualquier verificación en navegador.
 - **Aplicar en:** toda prueba visual local. Un verde en jsdom no dice nada del CSS servido.
+
+### 2026-11-10 · La revisión adversarial encuentra lo que los tests del autor no imaginan (VER-03)
+- **Error:** con 66/66 en verde y 10/10 mutaciones detectadas, un agente independiente encontró 3
+  Warning reales: citas guardadas con `fin ≤ inicio` que permitían reservar dos veces, una lista
+  que no se repintaba tras «ya pasó» y un tope de nombre medido en unidades UTF-16.
+- **Fix:** cada hallazgo se reprodujo primero en rojo y luego se corrigió en la misma HU.
+- **Aplicar en:** toda HU que toque dinero, datos personales o borrado. La mutación prueba que los
+  tests detectan lo que el autor previó; la revisión adversarial busca lo que no previó.
