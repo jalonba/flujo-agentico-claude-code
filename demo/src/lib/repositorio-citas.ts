@@ -23,3 +23,14 @@ export function interpretarCitas(crudo: string | null): Cita[] {
   if (!datos.every(esCitaValida)) throw new ErrorAlmacenamiento("hay citas con forma inválida");
   return datos;
 }
+
+export function leerCitas(almacenamiento: Pick<Storage, "getItem">): Cita[] {
+  void almacenamiento;
+  throw new Error("No implementado");
+}
+
+export function guardarCitas(almacenamiento: Pick<Storage, "setItem">, citas: Cita[]): void {
+  void almacenamiento;
+  void citas;
+  throw new Error("No implementado");
+}

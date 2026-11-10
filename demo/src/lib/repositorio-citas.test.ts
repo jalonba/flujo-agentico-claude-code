@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ErrorAlmacenamiento, interpretarCitas } from "./repositorio-citas";
+import { CLAVE_CITAS, ErrorAlmacenamiento, guardarCitas, interpretarCitas, leerCitas } from "./repositorio-citas";
 
 const citaValida = {
   id: "2030-01-16T08:00",
@@ -27,5 +27,18 @@ describe("interpretarCitas (HU-02)", () => {
     ["nombre vacío", JSON.stringify([{ ...citaValida, nombre: "" }])],
   ])("HU-02.c5 · datos guardados corruptos (%s): lanza ErrorAlmacenamiento", (_caso, crudo) => {
     expect(() => interpretarCitas(crudo)).toThrow(ErrorAlmacenamiento);
+  });
+});
+
+describe("guardarCitas / leerCitas (HU-03)", () => {
+  it("HU-03.c6 · lo guardado se lee igual después (persistencia en la clave versionada)", () => {
+    const memoria = new Map<string, string>();
+    const almacenamiento = {
+      getItem: (k: string) => memoria.get(k) ?? null,
+      setItem: (k: string, v: string) => void memoria.set(k, v),
+    };
+    guardarCitas(almacenamiento, [citaValida]);
+    expect([...memoria.keys()]).toEqual([CLAVE_CITAS]);
+    expect(leerCitas(almacenamiento)).toEqual([citaValida]);
   });
 });
