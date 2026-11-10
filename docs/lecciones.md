@@ -1,0 +1,107 @@
+# Lecciones: reglas aprendidas operando apps en producción con agentes
+
+Cada regla nació de un error real. Están redactadas en abstracto, sin nombres de proyectos ni
+clientes. Formato: **la regla**, **el error que la originó** y **cómo se verifica hoy**.
+
+---
+
+## 1. Un control sin control positivo no es un control
+
+- **Error que la originó:** una suite de aislamiento de datos daba verde en todas sus aserciones. Al
+  revisarla se vio que un sistema que negara *absolutamente todo* también habría dado verde: las
+  aserciones solo comprobaban que "no se veía lo ajeno", nunca que "sí se veía lo propio". En otro
+  caso, una aserción del tipo "no se envió ninguna alerta" pasaba porque no existía ningún
+  destinatario al que enviarla.
+- **Cómo se verifica hoy:** todo gate nuevo se acompaña de su **control positivo** (mismo camino,
+  condición invertida) y se prueba **por mutación**: se rompe a propósito lo que protege y se
+  comprueba que falla con el mensaje esperado. En este repo: la guardia de reloj inyectado y el gate
+  de publicación prueban primero que detectan una muestra sembrada.
+
+## 2. Un gate escrito por la misma mano que el código hereda sus puntos ciegos
+
+- **Error que la originó:** un guard nuevo interceptaba también las rutas de API y devolvía HTML en
+  vez de JSON. Ningún gate de la fase lo vio, porque los había escrito el mismo agente que escribió
+  el guard, con el mismo modelo mental de "solo pasan páginas por aquí". Lo destapó una suite
+  adversarial de otra fase.
+- **Cómo se verifica hoy:** toda fase que toque **dinero, datos personales o borrado** lleva una
+  **revisión adversarial con un agente independiente**, que recibe el código pero no las
+  conclusiones del autor. Su encargo es romperlo, no aprobarlo.
+
+## 3. Ninguna prueba lleva fecha literal; una suite que no se ejecuta no tiene color conocido
+
+- **Error que la originó:** pruebas escritas con una fecha "futura" fija empezaron a fallar el día en
+  que esa fecha pasó, sin que el código hubiera cambiado. En otro caso, un script citado durante
+  semanas como "la prueba" de una propiedad no podía ejecutarse: omitía un campo obligatorio y
+  abortaba antes de la primera aserción. Nadie lo había visto correr.
+- **Cómo se verifica hoy:** el reloj se **inyecta** (`ahora` / `reloj`) y las fechas de prueba se
+  derivan de él. Una guardia automática falla si una prueba llama a `new Date()` sin argumentos o a
+  `Date.now()`. Ningún informe cita una prueba cuya salida no se haya visto.
+
+## 4. Una migración aditiva puede ir antes del deploy; una que elimina o cambia la firma de algo que producción llama va después
+
+- **Error que la originó:** una migración que renombraba una función se aplicó antes de desplegar
+  el código que usaba el nombre nuevo. Durante esa ventana, producción llamaba a algo que ya no
+  existía.
+- **Cómo se verifica hoy:** cada migración se clasifica en el PR como **aditiva** (antes del deploy)
+  o **destructiva / de cambio de firma** (después del deploy, y solo cuando nada en producción la
+  llama). Las destructivas son parada obligatoria del bucle.
+
+## 5. Un estado intermedio que nadie vigila es un estado final
+
+- **Error que la originó:** registros quedaron en un estado "pendiente de confirmar" porque el paso
+  que los confirmaba falló en silencio. Nada los reintentaba ni los reportaba; semanas después
+  seguían ahí, tratados por el resto del sistema como si fueran definitivos.
+- **Cómo se verifica hoy:** todo estado intermedio tiene **dueño y plazo**: un proceso que lo
+  resuelve o lo escala, y una consulta de vigilancia que cuenta cuántos llevan más del plazo. Ese
+  número debe ser cero y se revisa.
+
+## 6. Un freno se pone sobre la magnitud que de verdad limita, no sobre una que se le parece
+
+- **Error que la originó:** un tope de consumo se aplicó sobre el número de mensajes, cuando el
+  costo real dependía del número de tokens. Unos pocos mensajes largos pasaban el freno y disparaban
+  el gasto.
+- **Cómo se verifica hoy:** antes de poner un límite se escribe **qué recurso se agota o qué costo
+  crece**, y el límite se mide sobre esa misma magnitud. La prueba del freno usa el caso extremo de
+  la magnitud real (pocos eventos, muy grandes), no el promedio.
+
+## 7. Un valor por defecto que elige solo una cuenta de dinero es peor que un error
+
+- **Error que la originó:** cuando faltaba un dato, el sistema asignaba el movimiento a una cuenta
+  "por defecto". Todo seguía funcionando, pero los saldos quedaron mal durante días. El error se ve;
+  el silencio no.
+- **Cómo se verifica hoy:** en todo lo que mueve dinero, la ausencia de un dato obligatorio
+  **detiene la operación con un error explícito**. Hay pruebas que verifican que sin ese dato no se
+  escribe nada.
+
+## 8. Un resumen operativo de un runbook no se ejecuta hasta que alguien lo contrasta contra el runbook
+
+- **Error que la originó:** un resumen "de bolsillo" de un procedimiento omitía un paso de respaldo
+  que sí estaba en el runbook completo. Se ejecutó el resumen.
+- **Cómo se verifica hoy:** un resumen operativo lleva la referencia al runbook y una verificación
+  explícita **paso por paso** contra él antes de ejecutarse. Si no coinciden, manda el runbook y el
+  resumen se corrige.
+
+## 9. Las suites que verifican residuo en la base se corren solas, nunca en paralelo
+
+- **Error que la originó:** una suite que comprobaba "no quedó basura después de la prueba" fallaba
+  de forma intermitente. La basura era de otra suite que corría al mismo tiempo. Un fallo que aparece
+  y desaparece es peor que uno constante: enseña a re-correr hasta que pase.
+- **Cómo se verifica hoy:** esas suites están marcadas como **seriales** y el runner las ejecuta en
+  un paso aparte. Un fallo intermitente se trata como un defecto del arnés hasta demostrar lo
+  contrario.
+
+## 10. Toda tarea programada deja su propio rastro en la base: los logs del proveedor caducan
+
+- **Error que la originó:** al investigar por qué una tarea programada no había hecho su trabajo, los
+  logs del proveedor de hosting ya habían expirado. No había forma de saber si había corrido.
+- **Cómo se verifica hoy:** cada ejecución de una tarea programada escribe **una fila propia**
+  (inicio, fin, resultado, cuántos registros tocó). Una consulta de vigilancia detecta ejecuciones
+  que faltan o que terminaron en error.
+
+---
+
+### Cómo nace una lección
+
+En el bucle de desarrollo, cada error pasa por **auto-blindaje**: se arregla, se prueba y se
+documenta. Si aplica a un proyecto, va a su `CLAUDE.md`; si aplica a cualquier proyecto, sube al
+skill correspondiente (`.claude/skills/*/SKILL.md`) o a esta lista.
