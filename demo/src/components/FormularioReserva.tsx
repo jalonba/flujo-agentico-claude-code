@@ -24,15 +24,19 @@ export function FormularioReserva({
   fecha,
   libres,
   reloj,
+  alRechazar,
 }: {
   fecha: FechaISO;
   libres: Bloque[];
   reloj: () => Date;
+  alRechazar: () => void;
 }) {
   const [nombre, setNombre] = useState("");
   const [inicio, setInicio] = useState("");
   const [error, setError] = useState<CodigoError | null>(null);
   const [confirmacion, setConfirmacion] = useState("");
+  // Si el bloque elegido dejó de estar libre (otra pestaña, o ya empezó), el select vuelve a vacío.
+  const inicioVigente = libres.some((b) => b.inicio === inicio) ? inicio : "";
 
   function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -49,13 +53,14 @@ export function FormularioReserva({
 
     const resultado = reservarCita({
       citas,
-      solicitud: { nombre, fecha, inicio },
+      solicitud: { nombre, fecha, inicio: inicioVigente },
       config: CONFIG_AGENDA,
       ahora: reloj(),
     });
     if (!resultado.ok) {
       setError(resultado.error);
-      notificarCambioDeCitas(); // refresca la lista por si estaba vieja
+      notificarCambioDeCitas(); // relee las citas por si la lista estaba vieja
+      alRechazar(); // y vuelve a pintar con la hora actual
       return;
     }
 
@@ -90,7 +95,10 @@ export function FormularioReserva({
           id="nombre"
           autoComplete="name"
           value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
+          onChange={(e) => {
+            setNombre(e.target.value);
+            setConfirmacion(""); // no dejar a la vista el nombre de la reserva anterior
+          }}
           aria-invalid={errorEnNombre}
           aria-describedby={errorEnNombre ? ID_ERROR : undefined}
           className={`rounded-md border border-borde px-3 py-2 ${CLASES_FOCO}`}
@@ -103,7 +111,7 @@ export function FormularioReserva({
         </label>
         <select
           id="horario"
-          value={inicio}
+          value={inicioVigente}
           onChange={(e) => setInicio(e.target.value)}
           aria-invalid={errorEnHorario}
           aria-describedby={errorEnHorario ? ID_ERROR : undefined}

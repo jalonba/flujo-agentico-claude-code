@@ -120,6 +120,23 @@ export function esFechaValida(fecha: string): boolean {
   }
 }
 
+export const LARGO_MAXIMO_NOMBRE = 80;
+
+const segmentador = new Intl.Segmenter("es", { granularity: "grapheme" });
+/** Caracteres de control o de formato (invisibles), salvo el unidor de emojis (ZWJ). */
+const RE_INVISIBLE = /(?!\u200D)[\p{Cc}\p{Cf}]/u;
+const RE_VISIBLE = /[\p{L}\p{N}]/u;
+
+/**
+ * Nombre válido: tras recortar espacios, entre 1 y 80 caracteres visibles (grafemas, no unidades
+ * UTF-16), sin caracteres de control ni invisibles, y con al menos una letra o número.
+ */
+export function esNombreValido(nombre: string): boolean {
+  const recortado = nombre.trim();
+  if (!RE_VISIBLE.test(recortado) || RE_INVISIBLE.test(recortado)) return false;
+  return [...segmentador.segment(recortado)].length <= LARGO_MAXIMO_NOMBRE;
+}
+
 /** Valida la forma de una cita leída de afuera (p. ej. del almacenamiento del navegador). */
 export function esCitaValida(x: unknown): x is Cita {
   if (typeof x !== "object" || x === null) return false;
@@ -127,12 +144,13 @@ export function esCitaValida(x: unknown): x is Cita {
   return (
     typeof c.id === "string" &&
     typeof c.nombre === "string" &&
-    c.nombre.trim().length > 0 &&
+    esNombreValido(c.nombre) &&
     typeof c.fecha === "string" &&
     esFechaValida(c.fecha) &&
     typeof c.inicio === "string" &&
     RE_HORA.test(c.inicio) &&
     typeof c.fin === "string" &&
-    RE_HORA.test(c.fin)
+    RE_HORA.test(c.fin) &&
+    horaAMinutos(c.fin) > horaAMinutos(c.inicio) // una cita sin duración no ocuparía nada
   );
 }

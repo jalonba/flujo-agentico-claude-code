@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { CONFIG_AGENDA } from "@/config/agenda";
 import { calcularAgendaDelDia, esFechaValida, fechaISO, type BloqueAgenda } from "@/dominio/agenda";
 import { notificarCambioDeCitas, useCitasGuardadas } from "@/lib/citas-guardadas";
@@ -11,6 +11,12 @@ import { FormularioReserva } from "./FormularioReserva";
 export function Agenda({ reloj = relojDelSistema }: { reloj?: () => Date }) {
   const lectura = useCitasGuardadas();
   const [fechaElegida, setFechaElegida] = useState("");
+  // Vuelve a pintar con la hora actual: cada minuto y cuando el formulario rechaza una reserva.
+  const [, refrescar] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => {
+    const intervalo = setInterval(refrescar, 60_000);
+    return () => clearInterval(intervalo);
+  }, []);
 
   if (lectura.estado === "cargando") {
     return (
@@ -79,6 +85,7 @@ export function Agenda({ reloj = relojDelSistema }: { reloj?: () => Date }) {
           fecha={fecha}
           libres={bloques.filter((b) => b.estado === "libre")}
           reloj={reloj}
+          alRechazar={refrescar}
         />
       )}
     </section>
@@ -93,7 +100,7 @@ function FilaBloque({ bloque }: { bloque: BloqueAgenda }) {
         libre ? "bg-libre-fondo text-libre-texto" : "bg-ocupado-fondo text-ocupado-texto"
       }`}
     >
-      <span className="tabular-nums">
+      <span className="whitespace-nowrap tabular-nums">
         {bloque.inicio} – {bloque.fin}
       </span>
       <span className="text-sm font-medium">{libre ? "Libre" : "Ocupado"}</span>

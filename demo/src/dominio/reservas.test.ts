@@ -89,9 +89,14 @@ describe("reservarCita (HU-03)", () => {
   });
 
   it("HU-03.c4 · el tope de 80 se mide en caracteres visibles, no en unidades UTF-16 (VER-03, W3)", () => {
-    expect(pedir({ nombre: "🙂".repeat(80) }).ok).toBe(true);
+    // "Ana " (4) + 76 emojis = 80 caracteres visibles, aunque sean 156 unidades UTF-16.
+    expect(pedir({ nombre: "Ana " + "🙂".repeat(76) }).ok).toBe(true);
     expect(pedir({ nombre: "e\u0301".repeat(80) }).ok).toBe(true); // «é» con acento combinado
-    expect(pedir({ nombre: "🙂".repeat(81) })).toEqual({ ok: false, error: "NOMBRE_INVALIDO" });
+    expect(pedir({ nombre: "Ana " + "🙂".repeat(77) })).toEqual({ ok: false, error: "NOMBRE_INVALIDO" });
+    // Un emoji compuesto (con unidor ZWJ) cuenta como un carácter y no se toma por invisible.
+    expect(pedir({ nombre: "Ana 👩‍👩‍👧" }).ok).toBe(true);
+    // Debe haber al menos una letra o número.
+    expect(pedir({ nombre: "🙂🙂" })).toEqual({ ok: false, error: "NOMBRE_INVALIDO" });
   });
 
   it.each([

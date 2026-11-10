@@ -1,5 +1,6 @@
 import {
   esFechaValida,
+  esNombreValido,
   generarGrilla,
   seSolapan,
   yaEmpezo,
@@ -8,8 +9,6 @@ import {
   type FechaISO,
   type Hora,
 } from "./agenda";
-
-export const LARGO_MAXIMO_NOMBRE = 80;
 
 export type CodigoErrorReserva =
   | "NOMBRE_INVALIDO"
@@ -42,10 +41,8 @@ export function reservarCita({
   config: ConfigAgenda;
   ahora: Date;
 }): ResultadoReserva {
+  if (!esNombreValido(solicitud.nombre)) return { ok: false, error: "NOMBRE_INVALIDO" };
   const nombre = solicitud.nombre.trim();
-  if (nombre.length === 0 || nombre.length > LARGO_MAXIMO_NOMBRE) {
-    return { ok: false, error: "NOMBRE_INVALIDO" };
-  }
 
   const { fecha, inicio } = solicitud;
   const bloque = esFechaValida(fecha) ? generarGrilla(config).find((b) => b.inicio === inicio) : undefined;
