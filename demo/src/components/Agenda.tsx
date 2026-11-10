@@ -96,7 +96,7 @@ function FilaBloque({ bloque }: { bloque: BloqueAgenda }) {
   const libre = bloque.estado === "libre";
   return (
     <li
-      className={`flex items-center justify-between rounded-md px-3 py-2 ${
+      className={`flex flex-wrap items-center justify-between gap-x-2 rounded-md px-3 py-2 ${
         libre ? "bg-libre-fondo text-libre-texto" : "bg-ocupado-fondo text-ocupado-texto"
       }`}
     >
