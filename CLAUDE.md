@@ -78,4 +78,8 @@ Regla de dependencias: `components → lib → dominio`. El dominio no importa n
 
 > Formato: fecha · error · fix · dónde más aplica. Se agregan durante el bucle (auto-blindaje).
 
-_(se completan al cerrar cada HU; ver también `docs/verificaciones/`)_
+### 2026-11-10 · Afirmar la causa de una excepción, no solo su tipo (VER-01, H1)
+- **Error:** `toThrow(RangeError)` pasaba con `duracionMin = 12.5` aunque se quitara la validación
+  de duración: el `RangeError` venía de otro validador, más adelante.
+- **Fix:** cada caso inválido afirma también el mensaje (`/Duración inválida/`, `/Hora inválida/`…).
+- **Aplicar en:** toda prueba de error: tipo **y** causa. Se detectó por mutación, no leyendo.
