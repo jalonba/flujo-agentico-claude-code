@@ -83,3 +83,10 @@ Regla de dependencias: `components → lib → dominio`. El dominio no importa n
   de duración: el `RangeError` venía de otro validador, más adelante.
 - **Fix:** cada caso inválido afirma también el mensaje (`/Duración inválida/`, `/Hora inválida/`…).
 - **Aplicar en:** toda prueba de error: tipo **y** causa. Se detectó por mutación, no leyendo.
+
+### 2026-11-10 · Verificación visual sobre build limpio (VER-02, H1)
+- **Error:** tras agregar tokens en `globals.css`, `next build` sirvió el CSS anterior desde la caché
+  de `.next`; el foco salía con el color por defecto del navegador. Los tests de jsdom no lo ven
+  (no aplican CSS).
+- **Fix:** `rm -rf .next && npm run build` antes de cualquier verificación en navegador.
+- **Aplicar en:** toda prueba visual local. Un verde en jsdom no dice nada del CSS servido.
