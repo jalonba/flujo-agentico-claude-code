@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+/*
+ * Tokens de color. Cada par texto/fondo está cubierto por el gate de contraste
+ * (src/__tests__/contraste.test.ts): ≥ 4,5:1 para texto, ≥ 3:1 para el foco.
+ */
+@theme {
+  --color-fondo: #ffffff;
+  --color-texto: #0f172a;
+  --color-texto-suave: #475569;
+  --color-borde: #94a3b8;
+  --color-libre-fondo: #ecfdf5;
+  --color-libre-texto: #065f46;
+  --color-ocupado-fondo: #f1f5f9;
+  --color-ocupado-texto: #334155;
+  --color-error-fondo: #fef2f2;
+  --color-error-texto: #991b1b;
+  --color-exito-fondo: #ecfdf5;
+  --color-exito-texto: #065f46;
+  --color-acento: #1d4ed8;
+  --color-acento-texto: #ffffff;
+  --color-foco: #1d4ed8;
+}
+
 body {
+  background: var(--color-fondo);
+  color: var(--color-texto);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }

@@ -81,22 +81,58 @@ export function yaEmpezo(fecha: FechaISO, bloque: Bloque, ahora: Date): boolean 
   return instante(fecha, horaAMinutos(bloque.inicio)).getTime() <= ahora.getTime();
 }
 
-export function calcularHorariosLibres(entrada: EntradaHorarios): Bloque[] {
+export interface BloqueAgenda extends Bloque {
+  estado: "libre" | "ocupado";
+}
+
+/** Bloques del día que aún no han empezado, cada uno marcado libre u ocupado. */
+export function calcularAgendaDelDia(entrada: EntradaHorarios): BloqueAgenda[] {
   const { citas, fecha, ahora } = entrada;
   const grilla = generarGrilla(entrada);
   instante(fecha); // valida la fecha aunque la grilla quede vacía
 
   const citasDelDia = citas.filter((c) => c.fecha === fecha);
-  return grilla.filter(
-    (bloque) => !yaEmpezo(fecha, bloque, ahora) && !citasDelDia.some((c) => seSolapan(bloque, c)),
+  return grilla
+    .filter((bloque) => !yaEmpezo(fecha, bloque, ahora))
+    .map((bloque) => ({
+      ...bloque,
+      estado: citasDelDia.some((c) => seSolapan(bloque, c)) ? "ocupado" : "libre",
+    }));
+}
+
+export function calcularHorariosLibres(entrada: EntradaHorarios): Bloque[] {
+  return calcularAgendaDelDia(entrada)
+    .filter((b) => b.estado === "libre")
+    .map(({ inicio, fin }) => ({ inicio, fin }));
+}
+
+/** `YYYY-MM-DD` del día local de `d`. */
+export function fechaISO(d: Date): FechaISO {
+  return `${d.getFullYear()}-${dosDigitos(d.getMonth() + 1)}-${dosDigitos(d.getDate())}`;
+}
+
+export function esFechaValida(fecha: string): boolean {
+  try {
+    instante(fecha);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Valida la forma de una cita leída de afuera (p. ej. del almacenamiento del navegador). */
+export function esCitaValida(x: unknown): x is Cita {
+  if (typeof x !== "object" || x === null) return false;
+  const c = x as Record<string, unknown>;
+  return (
+    typeof c.id === "string" &&
+    typeof c.nombre === "string" &&
+    c.nombre.trim().length > 0 &&
+    typeof c.fecha === "string" &&
+    esFechaValida(c.fecha) &&
+    typeof c.inicio === "string" &&
+    RE_HORA.test(c.inicio) &&
+    typeof c.fin === "string" &&
+    RE_HORA.test(c.fin)
   );
-}
-
-export interface BloqueAgenda extends Bloque {
-  estado: "libre" | "ocupado";
-}
-
-export function calcularAgendaDelDia(entrada: EntradaHorarios): BloqueAgenda[] {
-  void entrada;
-  throw new Error("No implementado");
 }

@@ -1,10 +1,25 @@
-import type { Cita } from "@/dominio/agenda";
+import { esCitaValida, type Cita } from "@/dominio/agenda";
 
 export const CLAVE_CITAS = "agenda-citas:v1";
 
-export class ErrorAlmacenamiento extends Error {}
+export class ErrorAlmacenamiento extends Error {
+  constructor(motivo: string) {
+    super(`No se pudieron leer las citas guardadas: ${motivo}`);
+    this.name = "ErrorAlmacenamiento";
+  }
+}
 
+/** Convierte lo guardado en `localStorage` en citas válidas, o lanza `ErrorAlmacenamiento`. */
 export function interpretarCitas(crudo: string | null): Cita[] {
-  void crudo;
-  throw new Error("No implementado");
+  if (crudo === null) return [];
+
+  let datos: unknown;
+  try {
+    datos = JSON.parse(crudo);
+  } catch {
+    throw new ErrorAlmacenamiento("no es JSON válido");
+  }
+  if (!Array.isArray(datos)) throw new ErrorAlmacenamiento("no es una lista");
+  if (!datos.every(esCitaValida)) throw new ErrorAlmacenamiento("hay citas con forma inválida");
+  return datos;
 }
