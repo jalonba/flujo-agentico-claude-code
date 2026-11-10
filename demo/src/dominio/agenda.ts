@@ -91,3 +91,12 @@ export function calcularHorariosLibres(entrada: EntradaHorarios): Bloque[] {
     (bloque) => !yaEmpezo(fecha, bloque, ahora) && !citasDelDia.some((c) => seSolapan(bloque, c)),
   );
 }
+
+export interface BloqueAgenda extends Bloque {
+  estado: "libre" | "ocupado";
+}
+
+export function calcularAgendaDelDia(entrada: EntradaHorarios): BloqueAgenda[] {
+  void entrada;
+  throw new Error("No implementado");
+}

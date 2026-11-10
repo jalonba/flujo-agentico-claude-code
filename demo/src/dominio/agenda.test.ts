@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { relojDePrueba } from "@/__tests__/reloj-de-prueba";
-import { calcularHorariosLibres, type Bloque, type Cita } from "./agenda";
+import { calcularAgendaDelDia, calcularHorariosLibres, type Bloque, type Cita } from "./agenda";
 
 // "Hoy" es el día del reloj de prueba; a las 07:00 todavía no ha empezado ningún bloque.
 const temprano = relojDePrueba({ hora: 7, minuto: 0 });
@@ -82,5 +82,24 @@ describe("calcularHorariosLibres (HU-01)", () => {
     const calcular = () => calcularHorariosLibres({ ...base, ...cambio });
     expect(calcular).toThrow(RangeError);
     expect(calcular).toThrow(causa);
+  });
+});
+
+describe("calcularAgendaDelDia (HU-02)", () => {
+  it("HU-02.c1 · marca cada bloque futuro como libre u ocupado y omite los que ya empezaron", () => {
+    const nueveYDiez = relojDePrueba({ hora: 9, minuto: 10 });
+    const hoy = nueveYDiez.fecha(0);
+    const agenda = calcularAgendaDelDia({
+      ...base,
+      cierre: "11:00",
+      fecha: hoy,
+      ahora: nueveYDiez.ahora,
+      citas: [cita(hoy, "10:00", "10:30"), cita(hoy, "08:00", "08:30")],
+    });
+    expect(agenda).toEqual([
+      { inicio: "09:30", fin: "10:00", estado: "libre" },
+      { inicio: "10:00", fin: "10:30", estado: "ocupado" },
+      { inicio: "10:30", fin: "11:00", estado: "libre" },
+    ]);
   });
 });
