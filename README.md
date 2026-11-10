@@ -21,15 +21,21 @@ flowchart LR
     E -- "hallazgo" --> C
 ```
 
-1. **Especificación (SDD):** un PRP define qué y por qué, con criterios EARS verificables y
-   ejemplos input → output. Se aprueba antes de escribir código.
-2. **Historias atómicas:** el PRP se parte en HU pequeñas; cada criterio `HU-XX.cN` se vuelve un test.
+1. **Especificación (SDD, *spec-driven development*):** un PRP (*Product Requirements Proposal*)
+   define qué construir y por qué, con criterios de aceptación en formato EARS («CUANDO pasa X, el
+   sistema DEBE hacer Y») y ejemplos de entrada → salida. Se aprueba antes de escribir código.
+2. **Historias atómicas:** el PRP se parte en historias de usuario (HU) pequeñas; cada criterio
+   numerado (`HU-01.c3` = historia 1, criterio 3) se vuelve al menos un test.
 3. **Slice vertical con TDD:** una HU por vez, de punta a punta. Test en rojo → código mínimo → verde.
-4. **`/verificador`:** nada cuenta como hecho sin **evidencia de ejecución**, y cada gate se prueba
-   rompiendo a propósito lo que protege (mutación).
-5. **Revisión adversarial:** un agente independiente intenta romper lo que toca dinero, datos
-   personales o borrado.
-6. **Deploy:** con CI en verde y gate humano.
+4. **`/verificador`:** nada cuenta como hecho sin **evidencia de ejecución** (salida real de lint,
+   tipos, pruebas y build). Además se rompe a propósito cada regla («mutación») para comprobar que
+   alguna prueba falla: una prueba que no puede fallar no protege nada (*control positivo*).
+5. **Revisión adversarial:** un agente independiente, que no escribió el código, intenta romper lo
+   que toca dinero, datos personales o borrado.
+6. **Deploy:** con CI en verde y aprobación humana. (La demo de este repo se corre en local; no está
+   desplegada.)
+
+Un *gate* es un control que bloquea el avance si no pasa.
 
 Detalle completo: [`docs/flujo.md`](docs/flujo.md).
 
@@ -49,9 +55,12 @@ Skills de Claude Code en [`.claude/skills/`](.claude/skills/):
 App Next.js 16 + TypeScript + Tailwind + Vitest, **sin backend**: el estado vive en `localStorage`.
 Muestra los horarios libres y ocupados de un día y permite reservar uno sin solapes.
 
+Requiere Node.js 22 o superior.
+
 ```bash
-cd demo && npm ci && npm run dev    # http://localhost:3000
-npm test                            # vitest run
+cd demo && npm ci
+npm run dev                                          # http://localhost:3000 (ocupa la terminal)
+npm test                                             # en otra terminal, dentro de demo/
 npm run lint && npm run typecheck && npm run build
 ```
 
@@ -65,12 +74,15 @@ Spec de la feature: [`specs/prp-agenda.md`](specs/prp-agenda.md) · Cerebro del 
 [`CLAUDE.md`](CLAUDE.md).
 
 En el historial se ve el ciclo de cada HU: `test(HU-0X): … (rojo)` → `feat(HU-0X): … (verde)` →
-correcciones de lo que encontró el verificador → `docs(HU-0X): VER-0X`.
+correcciones de lo que encontró el verificador → `docs(HU-0X): VER-0X`. Cada VER documenta los
+comandos corridos, las mutaciones probadas (a mano, con el fallo que produjo cada una) y los hallazgos,
+incluidos los que obligaron a corregir pruebas que pasaban por la razón equivocada.
 
 ## Lecciones
 
-Diez reglas aprendidas operando apps en producción con agentes, cada una con el error que la originó
-y cómo se verifica hoy: [`docs/lecciones.md`](docs/lecciones.md). Las tres más fuertes:
+Diez reglas aprendidas operando otras apps en producción con agentes (no esta demo: varias hablan de
+migraciones, dinero o tareas programadas), cada una con el error que la originó, en abstracto, y cómo
+se verifica hoy: [`docs/lecciones.md`](docs/lecciones.md). Las tres más fuertes:
 
 > **1. Un control sin control positivo no es un control.**
 > Si el gate se vería igual con la propiedad rota, no prueba nada.
@@ -96,5 +108,5 @@ This repository shows how I build software with AI agents: a spec-driven method 
 criteria → atomic user stories → vertical slices with TDD → an execution-evidence verifier →
 independent adversarial review → deploy), the Claude Code skills that run it, and a small demo app
 (an appointment scheduler in Next.js + TypeScript, no backend) built with that same method. Every
-story has red/green commits and a verification report; every gate is mutation-tested. The docs are in
-Spanish.
+story has red/green commits and a verification report that records the commands run and the manual
+mutation checks performed. The docs are in Spanish.

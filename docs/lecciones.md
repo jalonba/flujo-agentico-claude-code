@@ -1,7 +1,8 @@
 # Lecciones: reglas aprendidas operando apps en producción con agentes
 
-Cada regla nació de un error real. Están redactadas en abstracto, sin nombres de proyectos ni
-clientes. Formato: **la regla**, **el error que la originó** y **cómo se verifica hoy**.
+Cada regla nació de un error real en otros proyectos (no en la demo de este repositorio). Están
+redactadas en abstracto, sin nombres de proyectos ni clientes. Formato: **la regla**, **el error que
+la originó** y **cómo se verifica hoy**.
 
 ---
 
