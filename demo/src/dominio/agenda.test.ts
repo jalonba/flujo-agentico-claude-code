@@ -68,16 +68,19 @@ describe("calcularHorariosLibres (HU-01)", () => {
   });
 
   it.each([
-    ["duración cero", { duracionMin: 0 }],
-    ["duración negativa", { duracionMin: -30 }],
-    ["duración no entera", { duracionMin: 12.5 }],
-    ["apertura después del cierre", { apertura: "10:00", cierre: "08:00" }],
-    ["apertura igual al cierre", { apertura: "08:00", cierre: "08:00" }],
-    ["hora sin cero inicial", { apertura: "8:00" }],
-    ["hora fuera de rango", { cierre: "24:00" }],
-    ["fecha inexistente", { fecha: "2030-02-30" }],
-    ["fecha mal formada", { fecha: "mañana" }],
-  ])("HU-01.c7 · entrada inválida (%s): lanza RangeError", (_caso, cambio) => {
-    expect(() => calcularHorariosLibres({ ...base, ...cambio })).toThrow(RangeError);
+    ["duración cero", { duracionMin: 0 }, /Duración inválida/],
+    ["duración negativa", { duracionMin: -30 }, /Duración inválida/],
+    ["duración no entera", { duracionMin: 12.5 }, /Duración inválida/],
+    ["apertura después del cierre", { apertura: "10:00", cierre: "08:00" }, /antes del cierre/],
+    ["apertura igual al cierre", { apertura: "08:00", cierre: "08:00" }, /antes del cierre/],
+    ["hora sin cero inicial", { apertura: "8:00" }, /Hora inválida/],
+    ["hora fuera de rango", { cierre: "24:00" }, /Hora inválida/],
+    ["fecha inexistente", { fecha: "2030-02-30" }, /Fecha inexistente/],
+    ["fecha mal formada", { fecha: "mañana" }, /Fecha inválida/],
+  ])("HU-01.c7 · entrada inválida (%s): lanza RangeError por esa causa", (_caso, cambio, causa) => {
+    // Se afirma también la causa: un RangeError lanzado por otro motivo no cuenta.
+    const calcular = () => calcularHorariosLibres({ ...base, ...cambio });
+    expect(calcular).toThrow(RangeError);
+    expect(calcular).toThrow(causa);
   });
 });
