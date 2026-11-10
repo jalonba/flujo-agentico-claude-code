@@ -1,0 +1,5 @@
+docs/prompts/
+.blocklist.local
+node_modules/
+.next/
+.env*
