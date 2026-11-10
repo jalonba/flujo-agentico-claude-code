@@ -100,9 +100,9 @@ describe("reservarCita (HU-03)", () => {
   });
 
   it.each([
-    ["espacio de ancho cero", "\u200B"],
+    ["espacio de ancho cero", "Ana\u200B"],
     ["carácter de control", "Ana\u0007"],
-    ["nulo", "\u0000"],
+    ["nulo", "\u0000Ana"],
     ["inversión de texto", "\u202Eana"],
   ])("HU-03.c4 · rechaza nombres con caracteres invisibles o de control (%s) (VER-03, I4)", (_caso, nombre) => {
     expect(pedir({ nombre })).toEqual({ ok: false, error: "NOMBRE_INVALIDO" });
