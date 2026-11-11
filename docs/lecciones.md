@@ -40,47 +40,57 @@ la originó** y **cómo se verifica hoy**.
 
 ## 4. Una migración aditiva puede ir antes del deploy; una que elimina o cambia la firma de algo que producción llama va después
 
-- **Error que la originó:** una migración que renombraba una función se aplicó antes de desplegar
-  el código que usaba el nombre nuevo. Durante esa ventana, producción llamaba a algo que ya no
-  existía.
+- **Error que la originó:** una migración que cambiaba la firma de una función se aplicó antes de
+  publicar el código que la usaba con la firma nueva. Durante esa ventana, un botón de producción
+  llamaba a una función que ya no existía. Una migración aditiva antes del deploy sí habría sido
+  correcta: la pregunta que decide no es «¿es reversible?», sino «¿alguien en producción llama esto
+  ahora mismo?».
 - **Cómo se verifica hoy:** cada migración se clasifica en el PR como **aditiva** (antes del deploy)
   o **destructiva / de cambio de firma** (después del deploy, y solo cuando nada en producción la
-  llama). Las destructivas son parada obligatoria del bucle.
+  llama). Para clasificarla se busca quién la llama en el código **publicado**, no en la rama. Las
+  destructivas son parada obligatoria del bucle.
 
 ## 5. Un estado intermedio que nadie vigila es un estado final
 
-- **Error que la originó:** registros quedaron en un estado "pendiente de confirmar" porque el paso
-  que los confirmaba falló en silencio. Nada los reintentaba ni los reportaba; semanas después
-  seguían ahí, tratados por el resto del sistema como si fueran definitivos.
-- **Cómo se verifica hoy:** todo estado intermedio tiene **dueño y plazo**: un proceso que lo
-  resuelve o lo escala, y una consulta de vigilancia que cuenta cuántos llevan más del plazo. Ese
-  número debe ser cero y se revisa.
+- **Error que la originó:** una sincronización quedó *configurada pero nunca activada*, y su tarea
+  programada corrió 20 días en vacío, sin error ni alerta. La alerta vigilaba «caída», y «nunca
+  activada» no es «caída». Además, un paso del onboarding que encendía una función pagada se podía
+  omitir en silencio.
+- **Cómo se verifica hoy:** todo estado intermedio («configurado», «pendiente», «a medias») tiene
+  **dueño y plazo**, y una consulta de vigilancia cuenta cuántos llevan más del plazo; ese número debe
+  ser cero. Las alertas cubren también «nunca empezó», no solo «se cayó». Un paso que enciende algo
+  que se cobra no se puede saltar sin dejar constancia visible.
 
 ## 6. Un freno se pone sobre la magnitud que de verdad limita, no sobre una que se le parece
 
-- **Error que la originó:** un tope de consumo se aplicó sobre el número de mensajes, cuando el
-  costo real dependía del número de tokens. Unos pocos mensajes largos pasaban el freno y disparaban
-  el gasto.
-- **Cómo se verifica hoy:** antes de poner un límite se escribe **qué recurso se agota o qué costo
-  crece**, y el límite se mide sobre esa misma magnitud. La prueba del freno usa el caso extremo de
-  la magnitud real (pocos eventos, muy grandes), no el promedio.
+- **Error que la originó:** se limitó una carga de histórico a «máximo 12 meses» porque se temía
+  que fuera demasiado grande. Lo que de verdad limitaba era el volumen: al medirlo, eran 507 filas
+  que cargaban en 7 segundos. El freno estaba sobre la magnitud equivocada y recortaba datos útiles
+  sin proteger nada.
+- **Cómo se verifica hoy:** antes de poner un límite se **mide** y se escribe qué recurso se agota o
+  qué costo crece, y el límite se expresa en esa misma magnitud (filas, no meses). La prueba del freno
+  usa el caso extremo de la magnitud real, no el promedio.
 
 ## 7. Un valor por defecto que elige solo una cuenta de dinero es peor que un error
 
-- **Error que la originó:** cuando faltaba un dato, el sistema asignaba el movimiento a una cuenta
-  "por defecto". Todo seguía funcionando, pero los saldos quedaron mal durante días. El error se ve;
-  el silencio no.
-- **Cómo se verifica hoy:** en todo lo que mueve dinero, la ausencia de un dato obligatorio
-  **detiene la operación con un error explícito**. Hay pruebas que verifican que sin ese dato no se
-  escribe nada.
+- **Error que la originó:** un sincronizador que no tenía cuenta destino configurada tomaba «la
+  primera cuenta activa» del usuario. Con eso, 17 meses de movimientos habrían caído en su caja de
+  efectivo. Nada habría fallado: los saldos simplemente habrían quedado mal. El error se ve; el
+  silencio no.
+- **Cómo se verifica hoy:** se eliminó el valor por defecto. En todo lo que mueve dinero, la ausencia
+  de un dato obligatorio **detiene la operación con un error explícito y una alerta**. Hay pruebas que
+  verifican que sin ese dato no se escribe nada.
 
 ## 8. Un resumen operativo de un runbook no se ejecuta hasta que alguien lo contrasta contra el runbook
 
-- **Error que la originó:** un resumen "de bolsillo" de un procedimiento omitía un paso de respaldo
-  que sí estaba en el runbook completo. Se ejecutó el resumen.
-- **Cómo se verifica hoy:** un resumen operativo lleva la referencia al runbook y una verificación
-  explícita **paso por paso** contra él antes de ejecutarse. Si no coinciden, manda el runbook y el
-  resumen se corrige.
+- **Error que la originó:** una hoja de corte resumida —legible y convincente— omitía la guarda del
+  `UPDATE` (la condición sobre el valor anterior y la comprobación de que afectara exactamente una
+  fila), cuatro de los siete bloqueantes del runbook, y usaba como verificación una vista que daba un
+  **falso positivo garantizado**. No la salvó revisarla mejor, sino leerla contra el runbook fuente.
+- **Cómo se verifica hoy:** un resumen operativo lleva la referencia al runbook y se contrasta
+  **paso por paso** contra él antes de ejecutarse: guardas de cada escritura, lista completa de
+  bloqueantes y, para cada verificación, cómo se vería si el paso hubiera fallado. Si no coinciden,
+  manda el runbook y el resumen se corrige.
 
 ## 9. Las suites que verifican residuo en la base se corren solas, nunca en paralelo
 
@@ -93,11 +103,12 @@ la originó** y **cómo se verifica hoy**.
 
 ## 10. Toda tarea programada deja su propio rastro en la base: los logs del proveedor caducan
 
-- **Error que la originó:** al investigar por qué una tarea programada no había hecho su trabajo, los
-  logs del proveedor de hosting ya habían expirado. No había forma de saber si había corrido.
-- **Cómo se verifica hoy:** cada ejecución de una tarea programada escribe **una fila propia**
-  (inicio, fin, resultado, cuántos registros tocó). Una consulta de vigilancia detecta ejecuciones
-  que faltan o que terminaron en error.
+- **Error que la originó:** en el plan gratuito del hosting, los logs de ejecución duraban una hora.
+  Una tarea programada de madrugada era inauditable al empezar el día: no había forma de saber si
+  había corrido ni qué había hecho.
+- **Cómo se verifica hoy:** cada ejecución de una tarea programada escribe **su propio rastro en la
+  base** (última corrida, conteos, motivo de fallo). Una consulta de vigilancia detecta ejecuciones
+  que faltan o que terminaron en error. La única evidencia útil es la que la tarea deja ella misma.
 
 ---
 
