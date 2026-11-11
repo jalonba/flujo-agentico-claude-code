@@ -116,21 +116,28 @@ Reglas de corte:
 
 Aprobado, el backlog vive en el repositorio y es el estado de verdad de la feature.
 
-### 7. Entregar para aprobación
+### 7. Pedir la decisión
 
-Resume en el chat: el objetivo, cuántas HU hay, cuál es la HU-01 y si alguna se partió, las
-decisiones de arquitectura que pesan y la confirmación de que el filtro del paso 5 pasó. Pregunta qué
-ajustar. **Aquí termina la skill**: nada se implementa hasta que el humano apruebe.
+El cierre es un mensaje que se lee en un minuto y deja al humano listo para decidir:
 
-## Límites
+```text
+specs/prp-<feature>.md — PENDIENTE
+Resuelve: <el problema, en una línea>
+Historias: <N> · la que recorre todo primero: HU-01 <título> · partidas por tamaño: <cuáles o ninguna>
+Para mirar con calma: <las 1–3 decisiones que más cuestan revertir>
+Filtro del paso 5: completo
+¿Qué cambio antes de que lo apruebes?
+```
 
-- Solo escribe documentos. Ni código, ni SQL, ni endpoints, ni componentes.
-- Las fases del backlog no se desglosan en subtareas: eso ocurre al entrar a cada una, con el
-  contexto real de ese momento (lo hace `/bucle-agentico`).
-- El PRP nace `PENDIENTE` y solo el humano lo pasa a aprobado.
+Con ese mensaje la skill entrega el turno. La siguiente jugada es del humano.
 
-## Después
+## Fuera del alcance de esta skill
 
-Con el PRP y el backlog aprobados, `/bucle-agentico` implementa **una HU por vez** en modo SLICE:
-rama y PR propios, TDD por criterio y revisión humana al cerrar cada historia. Lo que se aprenda
-durante la implementación vuelve a la sección «Aprendizajes» de este PRP.
+| Tentación | Por qué no aquí | A quién le toca |
+|---|---|---|
+| Escribir código, SQL, rutas o componentes | El PRP fija el qué; el cómo se decide con el código abierto | `/bucle-agentico` |
+| Partir cada historia en tareas | Una lista de tareas escrita hoy está vieja cuando llega su turno | `/bucle-agentico`, al empezar esa HU |
+| Marcar el PRP como aprobado | Un documento no se aprueba a sí mismo | El humano |
+
+Traspaso: un PRP aprobado alimenta a `/bucle-agentico`, historia por historia, y lo que se descubra
+construyendo se anota de vuelta en sus «Aprendizajes».

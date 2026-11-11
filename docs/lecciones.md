@@ -53,9 +53,9 @@ la originó** y **cómo se verifica hoy**.
 ## 5. Un estado intermedio que nadie vigila es un estado final
 
 - **Error que la originó:** una sincronización quedó *configurada pero nunca activada*, y su tarea
-  programada corrió 20 días en vacío, sin error ni alerta. La alerta vigilaba «caída», y «nunca
-  activada» no es «caída». Además, un paso del onboarding que encendía una función pagada se podía
-  omitir en silencio.
+  programada corrió unas tres semanas en vacío, sin error ni alerta. La alerta vigilaba «caída», y
+  «nunca activada» no es «caída». Además, un paso del onboarding que encendía una función pagada se
+  podía omitir en silencio.
 - **Cómo se verifica hoy:** todo estado intermedio («configurado», «pendiente», «a medias») tiene
   **dueño y plazo**, y una consulta de vigilancia cuenta cuántos llevan más del plazo; ese número debe
   ser cero. Las alertas cubren también «nunca empezó», no solo «se cayó». Un paso que enciende algo
@@ -63,10 +63,10 @@ la originó** y **cómo se verifica hoy**.
 
 ## 6. Un freno se pone sobre la magnitud que de verdad limita, no sobre una que se le parece
 
-- **Error que la originó:** se limitó una carga de histórico a «máximo 12 meses» porque se temía
-  que fuera demasiado grande. Lo que de verdad limitaba era el volumen: al medirlo, eran 507 filas
-  que cargaban en 7 segundos. El freno estaba sobre la magnitud equivocada y recortaba datos útiles
-  sin proteger nada.
+- **Error que la originó:** se limitó una carga de histórico a «máximo 12 meses» porque se temía que
+  fuera demasiado grande. Lo que de verdad limitaba era el volumen: al medirlo, eran unos cientos de
+  filas que cargaban en segundos. El freno estaba sobre la magnitud equivocada y recortaba datos
+  útiles sin proteger nada.
 - **Cómo se verifica hoy:** antes de poner un límite se **mide** y se escribe qué recurso se agota o
   qué costo crece, y el límite se expresa en esa misma magnitud (filas, no meses). La prueba del freno
   usa el caso extremo de la magnitud real, no el promedio.
@@ -74,8 +74,8 @@ la originó** y **cómo se verifica hoy**.
 ## 7. Un valor por defecto que elige solo una cuenta de dinero es peor que un error
 
 - **Error que la originó:** un sincronizador que no tenía cuenta destino configurada tomaba «la
-  primera cuenta activa» del usuario. Con eso, 17 meses de movimientos habrían caído en su caja de
-  efectivo. Nada habría fallado: los saldos simplemente habrían quedado mal. El error se ve; el
+  primera cuenta activa» del usuario. Con eso, más de un año de movimientos habría caído en su caja
+  de efectivo. Nada habría fallado: los saldos simplemente habrían quedado mal. El error se ve; el
   silencio no.
 - **Cómo se verifica hoy:** se eliminó el valor por defecto. En todo lo que mueve dinero, la ausencia
   de un dato obligatorio **detiene la operación con un error explícito y una alerta**. Hay pruebas que

@@ -4,6 +4,8 @@ description: "Implementa una feature aprobada por fases, detallando cada fase so
 ---
 
 > Basado en la metodología SaaS Factory (V3/V4), adaptado por Jairo Alonso Baquero.
+> El arranque de sesión y los artefactos de estado (`features-<feature>.json` y `progress-<feature>.md`)
+> siguen el patrón de arnés para agentes de larga duración publicado por Anthropic (nov-2025).
 
 # /bucle-agentico — implementar por fases sin planear a ciegas
 
