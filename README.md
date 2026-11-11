@@ -64,6 +64,10 @@ npm test                                             # en otra terminal, dentro 
 npm run lint && npm run typecheck && npm run build
 ```
 
+**`npm audit`, conocido:** reporta 7 vulnerabilidades moderadas, todas en dependencias de desarrollo
+de lint (`minimatch`, vía `typescript-eslint`), fijadas por `eslint-config-next`. No entran en el
+build ni en el runtime (`npm audit --omit=dev` da 0) y se resuelven al actualizar ese paquete.
+
 | Historia | Spec | Verificación |
 |---|---|---|
 | HU-01 · Calcular horarios libres (dominio, TDD estricto) | [HU-01](specs/historias/HU-01.md) | [VER-01](docs/verificaciones/VER-01.md) |
@@ -92,6 +96,11 @@ se verifica hoy: [`docs/lecciones.md`](docs/lecciones.md). Las tres más fuertes
 
 > **3. Ninguna prueba lleva fecha literal; una suite que no se ejecuta no tiene color conocido.**
 > El reloj se inyecta, y una guardia automática lo hace cumplir.
+
+## Créditos
+
+Las skills [`prp`](.claude/skills/prp/SKILL.md) y [`bucle-agentico`](.claude/skills/bucle-agentico/SKILL.md)
+están basadas en la metodología SaaS Factory (V3/V4), adaptadas por Jairo Alonso Baquero.
 
 ## Stack y autor
 
